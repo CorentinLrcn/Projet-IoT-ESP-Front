@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/3.3.0/luxon.min.js"
+        integrity="sha512-KKbQg5o92MwtJKR9sfm/HkREzfyzNMiKPIQ7i7SZOxwEdiNCm4Svayn2DBq7MKEdrqPJUOSIpy1v6PpFlCQ0YA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+    <div>
+        <canvas id="kebabkebab70"></canvas>
+        <canvas id="kebabkebab70loraTemp"></canvas>
+        <canvas id="kebabkebab70loraMoist"></canvas>
+        <canvas id="kebabkebab70loraConduct"></canvas>
+    </div>
+</body>
+
+<script>
+    var DateTime = luxon.DateTime;
+
+    async function getTemperature() {
+        const res = await fetch('http://172.20.10.5:8080/api/v1/temperature');
+        const temperatures = await res.json();
+
+        const labels = temperatures.map(temperature => DateTime.fromISO(temperature.timestamp).toLocaleString(DateTime.DATETIME_SHORT))
+        const values = temperatures.map(temperature => temperature.value)
+
+        return { labels, values }
+    }
+
+    async function getLora() {
+        const res = await fetch('http://172.20.10.5:8080/api/v1/ttn');
+        const esps = await res.json();
+
+        const labelsTemps = esps.tempSoils.map(esp => DateTime.fromISO(esp.timestamp).toLocaleString(DateTime.DATETIME_SHORT))
+        const valuesTemps = esps.tempSoils.map(esp => esp.value)
+
+        const labelsMoists = esps.soilMoistures.map(esp => DateTime.fromISO(esp.timestamp).toLocaleString(DateTime.DATETIME_SHORT))
+        const valuesMoists = esps.soilMoistures.map(esp => esp.value)
+
+        const labelsConducts = esps.conductSoils.map(esp => DateTime.fromISO(esp.timestamp).toLocaleString(DateTime.DATETIME_SHORT))
+        const valuesConducts = esps.conductSoils.map(esp => esp.value)
+
+        return { labelsTemps, valuesTemps, labelsMoists, valuesMoists, labelsConducts, valuesConducts }
+    }
+
+    getTemperature().then(({ labels, values }) => {
+        const ctx = document.getElementById('kebabkebab70');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Temperatures',
+                    fill: true,
+                    data: values,
+                    borderWidth: 1,
+                    backgroundColor: '#bb7766CC',
+                    borderColor: 'green'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    })
+
+    getLora().then(({ labelsTemps, valuesTemps, labelsMoists, valuesMoists, labelsConducts, valuesConducts }) => {
+        const ctx = document.getElementById('kebabkebab70loraTemp');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labelsTemps,
+                datasets: [{
+                    label: 'Soil Temperatures',
+                    fill: true,
+                    data: valuesTemps,
+                    borderWidth: 1,
+                    backgroundColor: '#bb7766CC',
+                    borderColor: 'green'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctx2 = document.getElementById('kebabkebab70loraMoist');
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: labelsMoists,
+                datasets: [{
+                    label: 'Soil Moistures',
+                    fill: true,
+                    data: valuesMoists,
+                    borderWidth: 1,
+                    backgroundColor: '#bb7766CC',
+                    borderColor: 'green'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctx3 = document.getElementById('kebabkebab70loraConduct');
+        new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: labelsConducts,
+                datasets: [{
+                    label: 'Soil Temperatures',
+                    fill: true,
+                    data: valuesConducts,
+                    borderWidth: 1,
+                    backgroundColor: '#bb7766CC',
+                    borderColor: 'green'
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    })
+
+</script>
+
+</html>
